@@ -56,8 +56,10 @@ const Contact = () => {
 
             <style>{`
                 .contact-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 3rem; align-items: start; }
+                .contact-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
                 @media (max-width: 900px) {
                     .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+                    .contact-form-row { grid-template-columns: 1fr; }
                     h1 { font-size: 2.5rem !important; }
                 }
             `}</style>
@@ -127,7 +129,7 @@ const Contact = () => {
                                 </motion.div>
                             ) : (
                                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div className="contact-form-row">
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                             <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Full Name</label>
                                             <input

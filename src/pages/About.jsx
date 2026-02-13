@@ -35,13 +35,14 @@ const About = () => {
     ];
 
     return (
-        <div style={{ backgroundColor: '#0A0A0F', minHeight: '100vh', color: 'white' }}>
+        <div className="about-page-wrapper" style={{ backgroundColor: '#0A0A0F', minHeight: '100vh', color: 'white' }}>
             <SEO
                 title="About Us"
                 description="Learn about our mission, leadership, and commitment to celebrating Ethiopian athletic excellence."
             />
 
             <style>{`
+                .about-page-wrapper { overflow-x: hidden; width: 100%; }
                 .about-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center; }
                 .about-mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
                 .about-leadership-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 800px; margin: 0 auto; }
@@ -53,6 +54,7 @@ const About = () => {
                     .about-leadership-grid { grid-template-columns: 1fr; }
                     .about-values-grid { grid-template-columns: 1fr; gap: 2rem; }
                     h1 { font-size: 2.5rem !important; }
+                    h2 { font-size: 1.75rem !important; }
                 }
             `}</style>
 

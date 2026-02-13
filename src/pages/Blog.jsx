@@ -68,6 +68,47 @@ const Blog = () => {
                 description="Stay updated with the latest news and updates."
             />
 
+            <style>{`
+                .blog-featured-article {
+                    display: grid;
+                    grid-template-columns: 1.5fr 1fr;
+                    gap: 3rem;
+                    margin-bottom: 4rem;
+                    background-color: #111116;
+                    border-radius: 1rem;
+                    overflow: hidden;
+                    border: 1px solid #1a1a22;
+                }
+                .blog-posts-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                    gap: 1.5rem;
+                }
+                .about-featured-content {
+                    padding: 2.5rem 2.5rem 2.5rem 0;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }
+
+                @media (max-width: 900px) {
+                    .blog-featured-article {
+                        grid-template-columns: 1fr;
+                        gap: 0;
+                    }
+                    .blog-featured-image {
+                        height: 300px !important;
+                    }
+                    .about-featured-content {
+                        padding: 2rem !important;
+                    }
+                    .blog-posts-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    h1 { font-size: 2.5rem !important; }
+                }
+            `}</style>
+
             {/* Hero Header */}
             <section style={{
                 padding: '3rem 0 2rem',
@@ -116,21 +157,16 @@ const Blog = () => {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    style={{
-                                        display: 'grid', gridTemplateColumns: '1.5fr 1fr',
-                                        gap: '3rem', marginBottom: '4rem',
-                                        backgroundColor: '#111116', borderRadius: '1rem',
-                                        overflow: 'hidden', border: '1px solid #1a1a22',
-                                    }}
+                                    className="blog-featured-article"
                                 >
-                                    <div style={{ height: '400px', overflow: 'hidden' }}>
+                                    <div className="blog-featured-image" style={{ height: '400px', overflow: 'hidden' }}>
                                         <img
                                             src={featuredPost.imageUrl || getPlaceholder(featuredPost.category)}
                                             alt={featuredPost.title}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
                                     </div>
-                                    <div style={{ padding: '2.5rem 2.5rem 2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                    <div className="about-featured-content">
                                         <span style={{
                                             display: 'inline-block', width: 'fit-content',
                                             padding: '0.3rem 0.8rem', backgroundColor: 'rgba(68,102,255,0.12)',
@@ -170,7 +206,7 @@ const Blog = () => {
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>More Stories</h3>
                                     <div style={{ flex: 1, height: '1px', backgroundColor: '#1a1a22' }}></div>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+                                <div className="blog-posts-grid">
                                     {otherPosts.map((post, idx) => (
                                         <motion.div
                                             key={post.id}
