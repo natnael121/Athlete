@@ -54,6 +54,14 @@ const Contact = () => {
                 description="Get in touch with us. Contact information and a message form."
             />
 
+            <style>{`
+                .contact-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 3rem; align-items: start; }
+                @media (max-width: 900px) {
+                    .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+                    h1 { font-size: 2.5rem !important; }
+                }
+            `}</style>
+
             {/* Hero */}
             <section style={{
                 padding: '4rem 0 2rem',
@@ -91,7 +99,7 @@ const Contact = () => {
             {/* Main Content */}
             <section style={{ padding: '3rem 0 5rem' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '3rem', alignItems: 'start' }}>
+                    <div className="contact-grid">
 
                         {/* Contact Form */}
                         <motion.div

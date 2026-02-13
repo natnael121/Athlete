@@ -96,26 +96,94 @@ const AthleteProfile = () => {
         >
             <SEO title={`${athlete.name} - Profile`} description={`Profile of ${athlete.name}`} image={athlete.image} />
 
+            <style>{`
+                .athlete-profile-grid {
+                    display: grid;
+                    grid-template-columns: minmax(300px, 40%) 1fr;
+                    gap: 4rem;
+                    align-items: start;
+                }
+                .athlete-stats-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 3rem;
+                }
+                
+                @media (max-width: 900px) {
+                    .athlete-profile-grid {
+                        grid-template-columns: 1fr;
+                        gap: 3rem;
+                    }
+                    .athlete-image-container {
+                        height: 450px !important;
+                    }
+                    .dimension-label {
+                        display: none !important;
+                    }
+                }
+                @media (max-width: 600px) {
+                    .athlete-stats-grid {
+                        grid-template-columns: 1fr;
+                        gap: 2rem;
+                    }
+                    .athlete-image-container {
+                        height: 350px !important;
+                    }
+                    h1 { font-size: 2.75rem !important; margin-bottom: 2rem !important; }
+                    .athlete-word-label { font-size: 1rem !important; }
+                }
+
+                /* Timeline */
+                .timeline-line {
+                    position: absolute; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; width: 2px; background-color: #222;
+                }
+                .timeline-row {
+                    display: flex; position: relative; align-items: center;
+                }
+                .timeline-content-wrapper {
+                     width: 50%; display: flex;
+                }
+                .timeline-dot {
+                    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+                    width: 16px; height: 16px; background-color: #0A0A0F;
+                    border: 2px solid #4466FF; border-radius: 50%; z-index: 2;
+                    box-shadow: 0 0 15px rgba(68, 102, 255, 0.5);
+                }
+                
+                @media (max-width: 768px) {
+                    .timeline-line { left: 20px; transform: none; }
+                    .timeline-row { justify-content: flex-start !important; }
+                    .timeline-content-wrapper { width: 100% !important; padding: 0 0 0 3rem !important; justify-content: flex-start !important; }
+                    .timeline-dot { left: 20px; }
+                    .timeline-arrow { display: none !important; }
+                    .section-title { font-size: 2.25rem !important; }
+                }
+                @media (max-width: 500px) {
+                    .breadcrumb-container { flex-direction: column; align-items: flex-start !important; gap: 1rem; margin-bottom: 2rem !important; }
+                    .section-header { margin-bottom: 3rem !important; }
+                }
+            `}</style>
+
             {/* HERO / PROFILE */}
             <section style={{ padding: '2rem 0 4rem' }}>
                 <div className="container">
 
                     {/* Breadcrumb */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', fontSize: '0.85rem', fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>
+                    <div className="breadcrumb-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', fontSize: '0.85rem', fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>
                         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit' }}>
                             <FaChevronLeft size={10} /> BACK TO HOME
                         </Link>
                         <div style={{ textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4466FF' }}>Athlete Profile</div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 40%) 1fr', gap: '4rem', alignItems: 'start' }}>
+                    <div className="athlete-profile-grid">
 
                         {/* Photo */}
                         <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6 }} style={{ position: 'relative' }}>
-                            <div style={{ height: '600px', width: '100%', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="athlete-image-container" style={{ height: '600px', width: '100%', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>
                                 <img src={athlete.image} alt={athlete.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
-                            <div style={{ position: 'absolute', left: '-30px', top: '10%', bottom: '10%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', color: '#4466FF' }}>
+                            <div className="dimension-label" style={{ position: 'absolute', left: '-30px', top: '10%', bottom: '10%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', color: '#4466FF' }}>
                                 <FaChevronLeft style={{ transform: 'rotate(90deg)' }} />
                                 <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: '700', letterSpacing: '0.1em' }}>HEIGHT {athlete.stats.height}</div>
                                 <FaChevronLeft style={{ transform: 'rotate(-90deg)' }} />
@@ -134,7 +202,7 @@ const AthleteProfile = () => {
                                 </h1>
                             </motion.div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+                            <div className="athlete-stats-grid">
                                 <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '2rem', paddingBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                                     <div style={{ color: '#4466FF', fontSize: '3rem' }}><FaMapMarkerAlt /></div>
                                     <div>
@@ -190,25 +258,26 @@ const AthleteProfile = () => {
             {athlete.timeline && athlete.timeline.length > 0 && (
                 <section style={{ backgroundColor: '#050508', padding: '6rem 0' }}>
                     <div className="container">
-                        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
-                            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
+                        <div className="section-header" style={{ textAlign: 'center', marginBottom: '5rem' }}>
+                            <h2 className="section-title" style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
                                 Career <span style={{ color: '#4466FF' }}>Highlights</span>
                             </h2>
                             <p style={{ color: '#888', fontSize: '1.1rem' }}>A journey of dedication and success.</p>
                         </div>
                         <div style={{ position: 'relative', maxWidth: '1000px', margin: '0 auto' }}>
-                            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 0, bottom: 0, width: '2px', backgroundColor: '#222' }}></div>
+                            <div className="timeline-line"></div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6rem' }}>
                                 {athlete.timeline.map((item, index) => {
                                     const isEven = index % 2 === 0;
                                     return (
                                         <motion.div key={index} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}
-                                            style={{ display: 'flex', justifyContent: isEven ? 'flex-end' : 'flex-start', position: 'relative', alignItems: 'center' }}
+                                            className="timeline-row"
+                                            style={{ justifyContent: isEven ? 'flex-end' : 'flex-start' }}
                                         >
-                                            <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '16px', height: '16px', backgroundColor: '#0A0A0F', border: '2px solid #4466FF', borderRadius: '50%', zIndex: 2, boxShadow: '0 0 15px rgba(68, 102, 255, 0.5)' }}></div>
-                                            <div style={{ width: '50%', padding: isEven ? '0 0 0 3rem' : '0 3rem 0 0', display: 'flex', justifyContent: isEven ? 'flex-start' : 'flex-end' }}>
+                                            <div className="timeline-dot"></div>
+                                            <div className="timeline-content-wrapper" style={{ padding: isEven ? '0 0 0 3rem' : '0 3rem 0 0', justifyContent: isEven ? 'flex-start' : 'flex-end' }}>
                                                 <div style={{ backgroundColor: '#111116', border: '1px solid #222', padding: '2rem', borderRadius: '0.5rem', position: 'relative', width: '100%', maxWidth: '450px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
-                                                    <div style={{ position: 'absolute', top: '50%', marginTop: '-10px', [isEven ? 'left' : 'right']: '-11px', width: '20px', height: '20px', backgroundColor: '#111116', borderLeft: isEven && '1px solid #222', borderBottom: isEven && '1px solid #222', borderRight: !isEven && '1px solid #222', borderTop: !isEven && '1px solid #222', transform: 'rotate(45deg)', zIndex: 1 }}></div>
+                                                    <div className="timeline-arrow" style={{ position: 'absolute', top: '50%', marginTop: '-10px', [isEven ? 'left' : 'right']: '-11px', width: '20px', height: '20px', backgroundColor: '#111116', borderLeft: isEven && '1px solid #222', borderBottom: isEven && '1px solid #222', borderRight: !isEven && '1px solid #222', borderTop: !isEven && '1px solid #222', transform: 'rotate(45deg)', zIndex: 1 }}></div>
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                                         <span style={{ color: '#4466FF', fontWeight: 'bold', fontSize: '0.9rem', letterSpacing: '0.05em' }}>{item.year}</span>
                                                         <h3 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', margin: 0 }}>{item.title}</h3>

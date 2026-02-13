@@ -41,6 +41,21 @@ const About = () => {
                 description="Learn about our mission, leadership, and commitment to celebrating Ethiopian athletic excellence."
             />
 
+            <style>{`
+                .about-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center; }
+                .about-mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+                .about-leadership-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 800px; margin: 0 auto; }
+                .about-values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 900px; margin: 0 auto; }
+
+                @media (max-width: 900px) {
+                    .about-stats-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+                    .about-mission-grid { grid-template-columns: 1fr; gap: 2rem; }
+                    .about-leadership-grid { grid-template-columns: 1fr; }
+                    .about-values-grid { grid-template-columns: 1fr; gap: 2rem; }
+                    h1 { font-size: 2.5rem !important; }
+                }
+            `}</style>
+
             {/* Hero */}
             <section style={{
                 padding: '4rem 0 3rem',
@@ -80,7 +95,7 @@ const About = () => {
             {/* Stats Bar */}
             <section style={{ padding: '3rem 0', borderTop: '1px solid #1a1a22', borderBottom: '1px solid #1a1a22' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem', textAlign: 'center' }}>
+                    <div className="about-stats-grid">
                         {stats.map((stat, i) => (
                             <motion.div
                                 key={i}
@@ -104,7 +119,7 @@ const About = () => {
             {/* Mission */}
             <section style={{ padding: '5rem 0' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+                    <div className="about-mission-grid">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -153,7 +168,7 @@ const About = () => {
                             Our <span style={{ color: '#4466FF' }}>Leadership</span>
                         </h2>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+                    <div className="about-leadership-grid">
                         {team.map((person, i) => (
                             <motion.div
                                 key={i}
@@ -194,7 +209,7 @@ const About = () => {
                             Core <span style={{ color: '#4466FF' }}>Values</span>
                         </h2>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', maxWidth: '900px', margin: '0 auto' }}>
+                    <div className="about-values-grid">
                         {values.map((v, i) => (
                             <motion.div
                                 key={i}

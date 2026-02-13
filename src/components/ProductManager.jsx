@@ -753,7 +753,7 @@ const ProductManager = ({ isDarkMode }) => {
                                 {qrOpenId === prod.id && (
                                     <div style={{
                                         width: '100%',
-                                        display: 'flex', alignItems: 'center', gap: '1.5rem',
+                                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.5rem',
                                         marginTop: '0.75rem', padding: '1.25rem',
                                         backgroundColor: isDarkMode ? '#1a1a2e' : '#F5F3FF',
                                         borderRadius: '0.75rem',

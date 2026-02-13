@@ -70,18 +70,7 @@ const Home = () => {
     const visibleAthletes = athletes.slice(gridStartIndex, gridStartIndex + 6);
 
     return (
-        <div
-            style={{
-                height: '100vh',
-                backgroundColor: '#0A0A0F',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-            }}
-            tabIndex={0}
-        >
+        <div className="home-page" tabIndex={0}>
             <SEO
                 title="Home"
                 description="Meet our world-class athletes. Explore their profiles, achievements, and legacy."
@@ -108,26 +97,95 @@ const Home = () => {
                 .grid-photo.active {
                     animation: neonGlowSelected 2.5s ease-in-out infinite;
                     border-color: #4466FF !important;
+                    z-index: 10;
+                }
+
+                /* Responsive Layout */
+                .home-layout {
+                    display: grid;
+                    grid-template-columns: 1fr auto auto;
+                    padding: 3rem 3rem 0 4rem;
+                    align-items: center;
+                    height: 100%;
+                }
+                .home-left { padding-right: 3rem; display: flex; flex-direction: column; justify-content: center; }
+                .home-center { display: flex; align-items: center; justify-content: center; }
+                .home-right { padding-left: 2rem; display: flex; flex-direction: column; justify-content: center; min-width: 180px; }
+                .watermark {
+                    position: absolute; left: -3%; top: 50%; transform: translateY(-50%);
+                    font-size: clamp(18rem, 32vw, 30rem); fontWeight: 900;
+                    color: rgba(255,255,255,0.02); line-height: 1;
+                    font-family: var(--font-heading); pointer-events: none; z-index: 0; user-select: none;
+                }
+
+                @media (max-width: 1024px) {
+                    .home-layout {
+                        display: flex;
+                        flex-direction: column;
+                        padding: 6rem 2rem 2rem;
+                        gap: 3rem;
+                        overflow-y: auto;
+                        justify-content: flex-start;
+                    }
+                    .home-left { padding-right: 0; text-align: center; margin-bottom: 2rem; align-items: center; }
+                    .home-right { padding-left: 0; text-align: center; margin-top: 1rem; align-items: center; width: 100%; }
+                    .watermark { font-size: 15rem; top: 20%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; }
+                    h1 { font-size: 3.5rem !important; }
+                }
+
+                @media (max-width: 768px) {
+                    .home-layout {
+                        padding: 5rem 1rem 2rem;
+                        gap: 2rem;
+                    }
+                    .watermark { font-size: 10rem; top: 15%; }
+                    h1 { font-size: 2.5rem !important; margin-bottom: 1rem !important; }
+                    p { font-size: 0.8rem !important; }
+                }
+
+                .home-footer {
+                    padding: 1rem 4rem 1.5rem;
+                    display: flex; justify-content: flex-end; align-items: center;
+                    gap: 0.2rem; position: relative; z-index: 1; flex-wrap: wrap;
+                }
+                .home-social {
+                     padding: 0 4rem 1.25rem; display: flex; gap: 1.5rem; position: relative; z-index: 1;
+                }
+                @media (max-width: 1024px) {
+                    .home-footer { justify-content: center; padding: 1rem; padding-bottom: 2rem; }
+                    .home-social { justify-content: center; padding: 0 1rem 8rem; }
+                    
+                    /* Wrapper */
+                    .home-page {
+                        height: 100vh;
+                        background-color: #0A0A0F;
+                        color: white;
+                        position: relative;
+                        overflow: hidden;
+                        display: flex;
+                        flex-direction: column;
+                        outline: none;
+                    }
+                    @media (max-width: 1024px) {
+                        .home-page {
+                            height: auto;
+                            min-height: 100vh;
+                            overflow-y: auto;
+                            overflow-x: hidden;
+                        }
+                    }
                 }
             `}</style>
 
             {/* Background Watermark Number */}
-            <div style={{
-                position: 'absolute', left: '-3%', top: '50%', transform: 'translateY(-50%)',
-                fontSize: 'clamp(18rem, 32vw, 30rem)', fontWeight: '900',
-                color: 'rgba(255,255,255,0.02)', lineHeight: 1,
-                fontFamily: 'var(--font-heading)', pointerEvents: 'none', zIndex: 0, userSelect: 'none',
-            }}>
+            <div className="watermark">
                 {String(selectedIndex + 1).padStart(2, '0')}
             </div>
 
             {/* Main Content */}
-            <div style={{
-                flex: 1, display: 'grid', gridTemplateColumns: '1fr auto auto',
-                padding: '3rem 3rem 0 4rem', position: 'relative', zIndex: 1, alignItems: 'center',
-            }}>
+            <div className="home-layout" style={{ flex: 1, position: 'relative', zIndex: 1 }}>
                 {/* LEFT — Heading + Athlete Info */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: '3rem' }}>
+                <div className="home-left">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                         <span style={{
                             display: 'inline-block', color: '#4466FF', fontSize: '0.7rem',
@@ -206,7 +264,7 @@ const Home = () => {
                 </div>
 
                 {/* CENTER — Photo Grid (2 cols x 3 rows, small photos) */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="home-center">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={gridStartIndex}
@@ -251,7 +309,7 @@ const Home = () => {
                 </div>
 
                 {/* RIGHT — Selected Athlete Name (vertical style) */}
-                <div style={{ paddingLeft: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: '180px' }}>
+                <div className="home-right">
                     <AnimatePresence mode="wait">
                         {selected && (
                             <motion.div
@@ -295,11 +353,7 @@ const Home = () => {
 
             {/* BOTTOM — Numbered Selector */}
             {athletes.length > 0 && (
-                <div style={{
-                    padding: '1rem 4rem 1.5rem',
-                    display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
-                    gap: '0.2rem', position: 'relative', zIndex: 1, flexWrap: 'wrap',
-                }}>
+                <div className="home-footer">
                     <span style={{
                         color: 'rgba(255,255,255,0.15)', fontSize: '0.65rem', fontWeight: '600',
                         letterSpacing: '0.15em', textTransform: 'uppercase', marginRight: '1rem',
@@ -325,7 +379,7 @@ const Home = () => {
             )}
 
             {/* Social */}
-            <div style={{ padding: '0 4rem 1.25rem', display: 'flex', gap: '1.5rem', position: 'relative', zIndex: 1 }}>
+            <div className="home-social">
                 <span style={{ color: 'rgba(255,255,255,0.12)', fontSize: '0.65rem', fontWeight: '500' }}>Facebook</span>
                 <span style={{ color: 'rgba(255,255,255,0.06)' }}>/</span>
                 <span style={{ color: 'rgba(255,255,255,0.12)', fontSize: '0.65rem', fontWeight: '500' }}>Instagram</span>
