@@ -7,7 +7,8 @@ import {
     FaSafari, FaEdge, FaOpera, FaApple, FaWindows, FaLinux,
     FaMemory, FaMicrochip, FaLanguage, FaSun, FaMoon, FaTachometerAlt,
     FaChartLine, FaHourglassHalf, FaNetworkWired, FaBatteryFull,
-    FaPlug, FaMousePointer, FaQrcode, FaUserSecret, FaDownload
+    FaPlug, FaMousePointer, FaQrcode, FaUserSecret, FaDownload,
+    FaMapMarkedAlt, FaCrosshairs, FaLocationArrow
 } from 'react-icons/fa';
 
 const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
@@ -21,6 +22,7 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
         topPages: {},
         topCountries: {},
         topCities: {},
+        locations: [], // Array of locations with lat/long
         connectionData: {},
         screenResolutions: {},
         avgLoadTime: 0,
@@ -29,10 +31,8 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
     });
     const [loading, setLoading] = useState(true);
     const [selectedMetric, setSelectedMetric] = useState('realtime');
-    const [dateRange, setDateRange] = useState({
-        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        end: new Date()
-    });
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [mapView, setMapView] = useState('heatmap'); // 'heatmap' or 'points'
 
     useEffect(() => {
         // Adjust time range based on selection
@@ -76,6 +76,7 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
             const pages = {};
             const countries = {};
             const cities = {};
+            const locations = []; // Store locations with lat/long
             const connections = {};
             const resolutions = {};
             const uniqueIps = new Set();
@@ -96,6 +97,24 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                 if (v.country) countries[v.country] = (countries[v.country] || 0) + 1;
                 if (v.city) cities[v.city] = (cities[v.city] || 0) + 1;
                 
+                // Store location data with lat/long if available
+                if (v.latitude && v.longitude) {
+                    locations.push({
+                        id: v.id,
+                        lat: v.latitude,
+                        lng: v.longitude,
+                        city: v.city || 'Unknown',
+                        country: v.country || 'Unknown',
+                        countryCode: v.countryCode,
+                        ip: v.ip,
+                        timestamp: v.timestamp,
+                        device: v.device,
+                        browser: v.browser,
+                        path: v.path,
+                        accuracy: 1000 // Approximate accuracy for IP geolocation
+                    });
+                }
+
                 // Connection info
                 if (v.connectionType) {
                     connections[v.connectionType] = (connections[v.connectionType] || 0) + 1;
@@ -141,6 +160,7 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                 topPages: Object.entries(pages).sort((a, b) => b[1] - a[1]).slice(0, 10),
                 topCountries: Object.entries(countries).sort((a, b) => b[1] - a[1]).slice(0, 8),
                 topCities: Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 8),
+                locations: locations,
                 connectionData: Object.entries(connections).sort((a, b) => b[1] - a[1]),
                 screenResolutions: Object.entries(resolutions).sort((a, b) => b[1] - a[1]).slice(0, 5),
                 avgLoadTime: loadTimeCount > 0 ? (totalLoadTime / loadTimeCount).toFixed(0) : 0,
@@ -180,6 +200,166 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
         if (os?.toLowerCase().includes('android')) return <FaMobileAlt color="#3DDC84" />;
         if (os?.toLowerCase().includes('ios')) return <FaApple color="#555555" />;
         return <FaMicrochip color={theme.textMuted} />;
+    };
+
+    // Simple map component using div with coordinate display
+    const LocationMap = ({ locations, selectedLocation, onSelectLocation }) => {
+        // Group locations by approximate area for better visualization
+        const groupedLocations = locations.reduce((acc, loc) => {
+            const key = `${Math.round(loc.lat * 10) / 10},${Math.round(loc.lng * 10) / 10}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    ...loc,
+                    count: 1,
+                    lat: loc.lat,
+                    lng: loc.lng
+                };
+            } else {
+                acc[key].count++;
+            }
+            return acc;
+        }, {});
+
+        const locationGroups = Object.values(groupedLocations);
+
+        return (
+            <div style={{ position: 'relative' }}>
+                {/* Map Controls */}
+                <div style={{ 
+                    position: 'absolute', 
+                    top: '10px', 
+                    right: '10px', 
+                    zIndex: 10,
+                    display: 'flex',
+                    gap: '0.5rem'
+                }}>
+                    <button
+                        onClick={() => setMapView('points')}
+                        style={{
+                            padding: '0.5rem',
+                            backgroundColor: mapView === 'points' ? theme.accent : theme.card,
+                            color: mapView === 'points' ? '#FFFFFF' : theme.text,
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <FaMapMarkedAlt />
+                    </button>
+                    <button
+                        onClick={() => setMapView('heatmap')}
+                        style={{
+                            padding: '0.5rem',
+                            backgroundColor: mapView === 'heatmap' ? theme.accent : theme.card,
+                            color: mapView === 'heatmap' ? '#FFFFFF' : theme.text,
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <FaCrosshairs />
+                    </button>
+                </div>
+
+                {/* Map Grid */}
+                <div style={{ 
+                    backgroundColor: theme.bg,
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    minHeight: '400px',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}>
+                    {/* World Map Placeholder with Grid */}
+                    <svg width="100%" height="400" viewBox="0 0 800 400" style={{ background: theme.bg }}>
+                        {/* Grid Lines */}
+                        {Array.from({ length: 9 }).map((_, i) => (
+                            <line
+                                key={`v-${i}`}
+                                x1={i * 100}
+                                y1="0"
+                                x2={i * 100}
+                                y2="400"
+                                stroke={theme.border}
+                                strokeWidth="0.5"
+                                strokeDasharray="5,5"
+                            />
+                        ))}
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <line
+                                key={`h-${i}`}
+                                x1="0"
+                                y1={i * 100}
+                                x2="800"
+                                y2={i * 100}
+                                stroke={theme.border}
+                                strokeWidth="0.5"
+                                strokeDasharray="5,5"
+                            />
+                        ))}
+
+                        {/* Location Points */}
+                        {locationGroups.map((loc, index) => {
+                            // Convert lat/lng to SVG coordinates (rough approximation)
+                            const x = ((loc.lng + 180) / 360) * 800;
+                            const y = ((90 - loc.lat) / 180) * 400;
+                            
+                            // Only show if within bounds
+                            if (x < 0 || x > 800 || y < 0 || y > 400) return null;
+
+                            const size = Math.min(20, 10 + loc.count * 2);
+                            const isSelected = selectedLocation?.id === loc.id;
+
+                            return (
+                                <g 
+                                    key={loc.id || index}
+                                    onClick={() => onSelectLocation(loc)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    {mapView === 'heatmap' ? (
+                                        // Heatmap style
+                                        <circle
+                                            cx={x}
+                                            cy={y}
+                                            r={size / 2}
+                                            fill={theme.accent}
+                                            opacity={0.3 + (loc.count * 0.1)}
+                                        />
+                                    ) : (
+                                        // Point style
+                                        <circle
+                                            cx={x}
+                                            cy={y}
+                                            r={isSelected ? 8 : 5}
+                                            fill={isSelected ? '#F59E0B' : theme.accent}
+                                            stroke="#FFFFFF"
+                                            strokeWidth="2"
+                                        />
+                                    )}
+                                    {/* Label for selected location */}
+                                    {isSelected && (
+                                        <text
+                                            x={x + 10}
+                                            y={y - 10}
+                                            fill={theme.text}
+                                            fontSize="12"
+                                            fontWeight="bold"
+                                        >
+                                            {loc.city}, {loc.countryCode}
+                                        </text>
+                                    )}
+                                </g>
+                            );
+                        })}
+
+                        {/* Map Attribution */}
+                        <text x="10" y="390" fill={theme.textMuted} fontSize="10">
+                            Approximate locations based on IP geolocation
+                        </text>
+                    </svg>
+                </div>
+            </div>
+        );
     };
 
     if (loading) {
@@ -248,7 +428,7 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                     icon={<FaGlobe />}
                     label="Countries"
                     value={stats.topCountries.length}
-                    subValue={stats.topCountries[0]?.[0] || 'N/A'}
+                    subValue={`${stats.locations.length} locations`}
                     color="#10B981"
                     theme={theme}
                 />
@@ -270,6 +450,94 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                 />
             </div>
 
+            {/* Location Map Section */}
+            {stats.locations.length > 0 && (
+                <div style={{ 
+                    backgroundColor: theme.card, 
+                    padding: '1.5rem', 
+                    borderRadius: '20px', 
+                    border: `1px solid ${theme.border}` 
+                }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        marginBottom: '1rem'
+                    }}>
+                        <h4 style={{ 
+                            fontWeight: '800',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <FaMapMarkedAlt color="#10B981" /> Visitor Locations
+                            <span style={{ 
+                                fontSize: '0.8rem',
+                                backgroundColor: theme.bg,
+                                color: theme.textMuted,
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '12px'
+                            }}>
+                                {stats.locations.length} points
+                            </span>
+                        </h4>
+                        
+                        {/* Location Stats */}
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: theme.textMuted }}>
+                                <FaLocationArrow color={theme.accent} /> Most active:{' '}
+                                {stats.topCities[0]?.[0] || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Map */}
+                    <LocationMap 
+                        locations={stats.locations}
+                        selectedLocation={selectedLocation}
+                        onSelectLocation={setSelectedLocation}
+                    />
+
+                    {/* Selected Location Details */}
+                    {selectedLocation && (
+                        <div style={{ 
+                            marginTop: '1rem',
+                            padding: '1rem',
+                            backgroundColor: theme.bg,
+                            borderRadius: '12px',
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                            gap: '1rem'
+                        }}>
+                            <div>
+                                <p style={{ color: theme.textMuted, fontSize: '0.7rem' }}>Location</p>
+                                <p style={{ fontWeight: '600' }}>
+                                    {selectedLocation.city}, {selectedLocation.country}
+                                </p>
+                            </div>
+                            <div>
+                                <p style={{ color: theme.textMuted, fontSize: '0.7rem' }}>Coordinates</p>
+                                <p style={{ fontWeight: '600', fontFamily: 'monospace' }}>
+                                    {selectedLocation.lat.toFixed(4)}°, {selectedLocation.lng.toFixed(4)}°
+                                </p>
+                            </div>
+                            <div>
+                                <p style={{ color: theme.textMuted, fontSize: '0.7rem' }}>Device</p>
+                                <p style={{ fontWeight: '600' }}>
+                                    {selectedLocation.device} / {selectedLocation.browser}
+                                </p>
+                            </div>
+                            <div>
+                                <p style={{ color: theme.textMuted, fontSize: '0.7rem' }}>Visited</p>
+                                <p style={{ fontWeight: '600' }}>
+                                    {selectedLocation.timestamp?.toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Main Dashboard Content */}
             <div style={{ 
                 display: 'grid', 
@@ -277,7 +545,7 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                 gap: '1.5rem' 
             }}>
                 
-                {/* Recent Visitors Table - Always visible */}
+                {/* Recent Visitors Table */}
                 <div style={{ 
                     backgroundColor: theme.card, 
                     padding: '1.5rem', 
@@ -311,16 +579,34 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                                 <tr>
                                     <th style={{ padding: '0.75rem', textAlign: 'left' }}>Visitor</th>
                                     <th style={{ padding: '0.75rem', textAlign: 'left' }}>Location</th>
+                                    <th style={{ padding: '0.75rem', textAlign: 'left' }}>Coordinates</th>
                                     <th style={{ padding: '0.75rem', textAlign: 'left' }}>Page</th>
                                     <th style={{ padding: '0.75rem', textAlign: 'left' }}>Device</th>
                                     <th style={{ padding: '0.75rem', textAlign: 'left' }}>Browser/OS</th>
-                                    <th style={{ padding: '0.75rem', textAlign: 'left' }}>Connection</th>
                                     <th style={{ padding: '0.75rem', textAlign: 'right' }}>Time</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {stats.recentVisits.map(v => (
-                                    <tr key={v.id} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                    <tr 
+                                        key={v.id} 
+                                        style={{ 
+                                            borderBottom: `1px solid ${theme.border}`,
+                                            cursor: v.latitude && v.longitude ? 'pointer' : 'default',
+                                            backgroundColor: selectedLocation?.id === v.id ? theme.bg : 'transparent'
+                                        }}
+                                        onClick={() => v.latitude && v.longitude && setSelectedLocation({
+                                            id: v.id,
+                                            lat: v.latitude,
+                                            lng: v.longitude,
+                                            city: v.city,
+                                            country: v.country,
+                                            countryCode: v.countryCode,
+                                            device: v.device,
+                                            browser: v.browser,
+                                            timestamp: v.timestamp
+                                        })}
+                                    >
                                         <td style={{ padding: '1rem 0.75rem', fontWeight: '600' }}>
                                             <FaUserSecret size={12} style={{ marginRight: '4px', opacity: 0.5 }} />
                                             {v.ip ? v.ip.split('.').slice(0,2).join('.') + '.xxx' : 'Anonymous'}
@@ -328,6 +614,15 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                                         <td style={{ padding: '1rem 0.75rem' }}>
                                             <FaMapMarkerAlt size={12} style={{ marginRight: '4px' }} /> 
                                             {v.city || 'Unknown'}, {v.countryCode || '--'}
+                                        </td>
+                                        <td style={{ padding: '1rem 0.75rem', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                                            {v.latitude && v.longitude ? (
+                                                <span title={`${v.latitude}, ${v.longitude}`}>
+                                                    {v.latitude.toFixed(2)}°, {v.longitude.toFixed(2)}°
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: theme.textMuted }}>—</span>
+                                            )}
                                         </td>
                                         <td style={{ padding: '1rem 0.75rem', color: theme.accent }}>
                                             {v.path?.split('/').pop() || '/'}
@@ -338,9 +633,6 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                                         </td>
                                         <td style={{ padding: '1rem 0.75rem' }}>
                                             {getBrowserIcon(v.browser)} {v.browser} / {getOsIcon(v.os)} {v.os?.split(' ')[0]}
-                                        </td>
-                                        <td style={{ padding: '1rem 0.75rem' }}>
-                                            {v.connectionType && <FaWifi size={12} />} {v.connectionType || 'Unknown'}
                                         </td>
                                         <td style={{ padding: '1rem 0.75rem', textAlign: 'right', color: theme.textMuted }}>
                                             {v.timestamp?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -380,21 +672,58 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                             ))}
                         </div>
 
-                        {/* Cities */}
+                        {/* Cities with Coordinates */}
                         <div>
                             <h5 style={{ color: theme.textMuted, marginBottom: '0.5rem' }}>Top Cities</h5>
-                            {stats.topCities.map(([city, count]) => (
-                                <div key={city} style={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    marginBottom: '0.5rem',
-                                    padding: '0.25rem 0'
-                                }}>
-                                    <span style={{ color: theme.text }}>{city}</span>
-                                    <span style={{ fontWeight: '600' }}>{count} visits</span>
-                                </div>
-                            ))}
+                            {stats.topCities.map(([city, count]) => {
+                                // Find a location with this city to get coordinates
+                                const location = stats.locations.find(l => l.city === city);
+                                return (
+                                    <div key={city} style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        marginBottom: '0.5rem',
+                                        padding: '0.25rem 0'
+                                    }}>
+                                        <span style={{ color: theme.text }}>
+                                            {city}
+                                            {location && (
+                                                <span style={{ 
+                                                    fontSize: '0.7rem', 
+                                                    color: theme.textMuted,
+                                                    marginLeft: '0.5rem',
+                                                    fontFamily: 'monospace'
+                                                }}>
+                                                    ({location.lat.toFixed(2)}°, {location.lng.toFixed(2)}°)
+                                                </span>
+                                            )}
+                                        </span>
+                                        <span style={{ fontWeight: '600' }}>{count} visits</span>
+                                    </div>
+                                );
+                            })}
                         </div>
+
+                        {/* Coordinate Summary */}
+                        {stats.locations.length > 0 && (
+                            <div style={{ 
+                                marginTop: '1rem',
+                                padding: '0.75rem',
+                                backgroundColor: theme.bg,
+                                borderRadius: '8px',
+                                fontSize: '0.8rem'
+                            }}>
+                                <p style={{ color: theme.textMuted, marginBottom: '0.25rem' }}>
+                                    <FaCrosshairs /> Coordinate Range:
+                                </p>
+                                <p style={{ fontFamily: 'monospace' }}>
+                                    Lat: {Math.min(...stats.locations.map(l => l.lat)).toFixed(2)}° to {Math.max(...stats.locations.map(l => l.lat)).toFixed(2)}°
+                                </p>
+                                <p style={{ fontFamily: 'monospace' }}>
+                                    Lng: {Math.min(...stats.locations.map(l => l.lng)).toFixed(2)}° to {Math.max(...stats.locations.map(l => l.lng)).toFixed(2)}°
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -499,7 +828,7 @@ const AnalyticsDashboard = ({ isDarkMode, timeRange = '24h' }) => {
                                 borderRadius: '12px',
                                 textAlign: 'center'
                             }}>
-                                <FaBounce size={20} color={theme.accent} />
+                                <FaChartLine size={20} color={theme.accent} />
                                 <p style={{ fontSize: '0.7rem', color: theme.textMuted }}>Bounce Rate</p>
                                 <p style={{ fontSize: '1.2rem', fontWeight: '700' }}>{stats.bounceRate}%</p>
                             </div>
