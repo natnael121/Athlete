@@ -6,7 +6,7 @@ const SEO = ({ title, description, keywords, image, url }) => {
     const fullTitle = title
         ? `${title} | ${siteName}`
         : `${siteName} - Celebrating Ethiopia’s Greatest Olympic Legends`;
-
+ 
     const metaDescription =
         description ||
         "Discover Ethiopia’s Olympic champions, legendary athletes, and historic victories. A tribute to greatness, endurance, and national pride.";
