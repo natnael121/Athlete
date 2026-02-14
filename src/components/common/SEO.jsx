@@ -15,9 +15,10 @@ const SEO = ({ title, description, keywords, image, url }) => {
         keywords ||
         "Ethiopian Olympic champions, Ethiopia athletics, Haile Gebrselassie, Kenenisa Bekele, Tirunesh Dibaba, Olympic history Ethiopia, Ethiopian runners";
 
+    // ✅ YOUR IMAGE ADDED HERE
     const metaImage =
         image ||
-        "https://images.unsplash.com/photo-1546519638-68e109acd27d?auto=format&fit=crop&w=1200&q=80";
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxxtFeeMi-YSz1U9J5rpgMz7gaNdNbvaSKGO9oMtNmjw&s=10";
 
     const siteUrl = url || window.location.href;
 
@@ -40,12 +41,16 @@ const SEO = ({ title, description, keywords, image, url }) => {
         updateMetaTag('name', 'description', metaDescription);
         updateMetaTag('name', 'keywords', metaKeywords);
 
-        // OpenGraph (Facebook, LinkedIn)
+        // OpenGraph (Facebook, Telegram, LinkedIn)
         updateMetaTag('property', 'og:title', fullTitle);
         updateMetaTag('property', 'og:description', metaDescription);
         updateMetaTag('property', 'og:image', metaImage);
         updateMetaTag('property', 'og:url', siteUrl);
         updateMetaTag('property', 'og:type', 'website');
+
+        // Optional (better previews)
+        updateMetaTag('property', 'og:image:width', '1200');
+        updateMetaTag('property', 'og:image:height', '630');
 
         // Twitter SEO
         updateMetaTag('name', 'twitter:card', 'summary_large_image');
