@@ -7,233 +7,201 @@ import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { FaMedal } from 'react-icons/fa';
 
 const Home = () => {
-    const [athletes, setAthletes] = useState([]);
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [loading, setLoading] = useState(true);
+  const [athletes, setAthletes] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setAthletes(data);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, []);
+  useEffect(() => {
+    const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAthletes(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
-    const handleKeyDown = useCallback((e) => {
-        if (athletes.length === 0) return;
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-            setSelectedIndex(prev => (prev + 1) % athletes.length);
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            setSelectedIndex(prev => (prev - 1 + athletes.length) % athletes.length);
-        }
-    }, [athletes.length]);
+  const selected = athletes[selectedIndex] || null;
 
-    useEffect(() => {
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
-
-    const selected = athletes[selectedIndex];
-
-    if (loading) {
-        return (
-            <div style={{
-                minHeight: '100vh',
-                background: '#0A0A0F',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#777'
-            }}>
-                Loading...
-            </div>
-        );
+  const handleKeyDown = useCallback((e) => {
+    if (athletes.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      setSelectedIndex(prev => (prev + 1) % athletes.length);
+    } else if (e.key === 'ArrowUp') {
+      setSelectedIndex(prev => (prev - 1 + athletes.length) % athletes.length);
     }
+  }, [athletes.length]);
 
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  if (loading) {
     return (
-        <div className="home">
-            <SEO
-                title="Ethiopian Olympic Champions"
-                description="Explore Ethiopia’s greatest Olympic legends and their achievements."
-            />
-
-            <style>{`
-                .home {
-                    background: #0A0A0F;
-                    color: white;
-                    min-height: 100vh;
-                    overflow-x: hidden;
-                }
-
-                /* ===== MOBILE FIRST ===== */
-                .container {
-                    display: flex;
-                    flex-direction: column;
-                    padding: 1rem;
-                    gap: 1.5rem;
-                }
-
-                .header {
-                    text-align: center;
-                }
-
-                .header h1 {
-                    font-size: 2rem;
-                    font-weight: 900;
-                }
-
-                .header p {
-                    font-size: 0.9rem;
-                    opacity: 0.6;
-                }
-
-                .main-card {
-                    background: #111;
-                    border-radius: 12px;
-                    overflow: hidden;
-                }
-
-                .main-card img {
-                    width: 100%;
-                    height: 240px;
-                    object-fit: cover;
-                }
-
-                .card-content {
-                    padding: 1rem;
-                }
-
-                .grid {
-                    display: flex;
-                    overflow-x: auto;
-                    gap: 0.7rem;
-                    padding-bottom: 0.5rem;
-                }
-
-                .grid-item {
-                    min-width: 110px;
-                    height: 130px;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    border: 2px solid transparent;
-                    cursor: pointer;
-                }
-
-                .grid-item.active {
-                    border-color: #4466FF;
-                }
-
-                .grid-item img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
-
-                /* ===== DESKTOP ===== */
-                @media (min-width: 1024px) {
-                    .container {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        padding: 3rem;
-                        gap: 3rem;
-                    }
-
-                    .header {
-                        text-align: left;
-                    }
-
-                    .header h1 {
-                        font-size: 4rem;
-                    }
-
-                    .main-card img {
-                        height: 420px;
-                    }
-
-                    .grid {
-                        flex-wrap: wrap;
-                        overflow: visible;
-                    }
-
-                    .grid-item {
-                        width: 120px;
-                    }
-                }
-            `}</style>
-
-            <div className="container">
-
-                {/* HEADER */}
-                <div className="header">
-                    <h1>Olympic Champions</h1>
-                    <p>
-                        Celebrating legends like{" "}
-                        0
-                    </p>
-                </div>
-
-                {/* SELECTED ATHLETE */}
-                {selected && (
-                    <motion.div
-                        key={selected.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="main-card"
-                    >
-                        <img src={selected.imageUrl} alt={selected.name} />
-
-                        <div className="card-content">
-                            <h2>{selected.name}</h2>
-
-                            <p style={{ opacity: 0.6 }}>
-                                {selected.category}
-                            </p>
-
-                            {selected.medals > 0 && (
-                                <p style={{ marginTop: '0.5rem' }}>
-                                    <FaMedal /> {selected.medals} Olympic Medals
-                                </p>
-                            )}
-
-                            <Link
-                                to={`/product/${selected.id}`}
-                                style={{
-                                    display: 'inline-block',
-                                    marginTop: '1rem',
-                                    background: '#4466FF',
-                                    padding: '0.6rem 1.2rem',
-                                    borderRadius: '6px',
-                                    color: '#fff',
-                                    textDecoration: 'none',
-                                    fontWeight: '600'
-                                }}
-                            >
-                                View Profile
-                            </Link>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* SCROLLABLE GRID */}
-                <div className="grid">
-                    {athletes.map((athlete, index) => (
-                        <div
-                            key={athlete.id}
-                            className={`grid-item ${index === selectedIndex ? 'active' : ''}`}
-                            onClick={() => setSelectedIndex(index)}
-                        >
-                            <img src={athlete.imageUrl} alt={athlete.name} />
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        background: '#0A0A0F',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: '#999'
+      }}>
+        Loading...
+      </div>
     );
+  }
+
+  return (
+    <div className="home-page">
+      <SEO title="Home" description="Athletes showcase" />
+
+      <style>{`
+        .home-page {
+          background: #0A0A0F;
+          color: white;
+          height: 100vh;
+          overflow: hidden;
+        }
+
+        /* ===== MOBILE (TikTok Style) ===== */
+        .mobile-feed {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .desktop-layout {
+            display: none;
+          }
+
+          .mobile-feed {
+            display: block;
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+          }
+
+          .mobile-card {
+            height: 100vh;
+            position: relative;
+            scroll-snap-align: start;
+          }
+
+          .mobile-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+          }
+
+          .overlay h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+          }
+
+          .overlay p {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+          }
+
+          .cta-btn {
+            margin-top: 10px;
+            display: inline-block;
+            background: #4466FF;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-decoration: none;
+            color: white;
+          }
+        }
+
+        /* ===== DESKTOP (YOUR ORIGINAL STYLE) ===== */
+        .desktop-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          height: 100%;
+          padding: 2rem;
+        }
+
+        .left {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .right img {
+          width: 100%;
+          height: 80vh;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+      `}</style>
+
+      {/* ===== MOBILE TikTok FEED ===== */}
+      <div className="mobile-feed">
+        {athletes.map((athlete, index) => (
+          <div
+            key={athlete.id}
+            className="mobile-card"
+            onClick={() => setSelectedIndex(index)}
+          >
+            <img src={athlete.imageUrl} alt={athlete.name} />
+
+            <div className="overlay">
+              <h2>{athlete.name}</h2>
+              <p>{athlete.category}</p>
+
+              {athlete.medals > 0 && (
+                <p><FaMedal /> {athlete.medals} medals</p>
+              )}
+
+              <Link to={`/product/${athlete.id}`} className="cta-btn">
+                View Profile
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ===== DESKTOP ===== */}
+      <div className="desktop-layout">
+        <div className="left">
+          {selected && (
+            <>
+              <h1>{selected.name}</h1>
+              <p>{selected.category}</p>
+
+              {selected.medals > 0 && (
+                <p><FaMedal /> {selected.medals} medals</p>
+              )}
+
+              <Link to={`/product/${selected.id}`} className="cta-btn">
+                View Profile
+              </Link>
+            </>
+          )}
+        </div>
+
+        <div className="right">
+          {selected && (
+            <img src={selected.imageUrl} alt={selected.name} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Home;
