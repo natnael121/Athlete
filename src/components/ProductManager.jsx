@@ -11,7 +11,7 @@ import {
     doc,
     updateDoc
 } from 'firebase/firestore';
-import { FaImage, FaPlus, FaTimes, FaRunning, FaEdit, FaTrash, FaCheck, FaMedal, FaChevronDown, FaChevronUp, FaQrcode, FaDownload } from 'react-icons/fa';
+import { FaImage, FaPlus, FaTimes, FaRunning, FaEdit, FaTrash, FaCheck, FaMedal, FaChevronDown, FaChevronUp, FaQrcode, FaDownload, FaPrint } from 'react-icons/fa';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const ProductManager = ({ isDarkMode }) => {
@@ -29,12 +29,114 @@ const ProductManager = ({ isDarkMode }) => {
     const downloadQR = (athleteId, athleteName) => {
         const canvas = document.getElementById(`qr-${athleteId}`);
         if (canvas) {
-            const url = canvas.toDataURL('image/png');
+            // Create a temporary canvas to include the name text
+            const tempCanvas = document.createElement('canvas');
+            const ctx = tempCanvas.getContext('2d');
+            const padding = 40;
+            const textHeight = 40;
+
+            tempCanvas.width = canvas.width + padding;
+            tempCanvas.height = canvas.height + padding + textHeight;
+
+            // Fill background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Draw QR code
+            ctx.drawImage(canvas, padding / 2, padding / 2);
+
+            // Draw Name
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(athleteName, tempCanvas.width / 2, canvas.height + padding);
+
+            const url = tempCanvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.download = `${athleteName || 'athlete'}-qr.png`;
             link.href = url;
             link.click();
         }
+    };
+
+    const printSingleQR = (athleteId, athleteName) => {
+        const canvas = document.getElementById(`qr-${athleteId}`);
+        if (canvas) {
+            const qrDataUrl = canvas.toDataURL('image/png');
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Print QR - ${athleteName}</title>
+                        <style>
+                            body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+                            .container { text-align: center; border: 2px solid #eee; padding: 40px; border-radius: 20px; }
+                            img { width: 300px; height: 300px; }
+                            h1 { margin-top: 20px; font-size: 24px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <img src="${qrDataUrl}" />
+                            <h1>${athleteName}</h1>
+                            <p>${getAthleteUrl(athleteId)}</p>
+                        </div>
+                        <script>
+                            window.onload = () => { window.print(); window.close(); };
+                        </script>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    };
+
+    const printAllQRs = () => {
+        const printWindow = window.open('', '_blank');
+        let qrItemsHtml = '';
+
+        products.forEach(prod => {
+            const canvas = document.getElementById(`qr-${prod.id}`);
+            if (canvas) {
+                const qrDataUrl = canvas.toDataURL('image/png');
+                qrItemsHtml += `
+                    <div class="qr-item">
+                        <img src="${qrDataUrl}" />
+                        <h3>${prod.name}</h3>
+                        <p>${prod.category || ''}</p>
+                    </div>
+                `;
+            }
+        });
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>All Athlete QR Codes</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 20px; }
+                        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+                        .qr-item { border: 1px solid #ddd; padding: 15px; text-align: center; border-radius: 10px; page-break-inside: avoid; }
+                        img { width: 150px; height: 150px; }
+                        h3 { margin: 10px 0 5px 0; font-size: 16px; }
+                        p { margin: 0; font-size: 12px; color: #666; }
+                        @media print {
+                            .grid { grid-template-columns: repeat(3, 1fr); }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1 style="text-align: center; margin-bottom: 30px;">Athlete QR Roster</h1>
+                    <div class="grid">
+                        ${qrItemsHtml}
+                    </div>
+                    <script>
+                        window.onload = () => { window.print(); window.close(); };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
     };
     const [category, setCategory] = useState('Track & Field');
     const [dimensions, setDimensions] = useState(''); // Height
@@ -692,9 +794,26 @@ const ProductManager = ({ isDarkMode }) => {
                 border: `1px solid ${theme.border}`,
                 boxShadow: '0 4px 6px rgba(0,0,0,0.04)'
             }}>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '2rem', color: theme.text, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <FaMedal style={{ color: '#D4F462' }} /> Athlete Roster ({products.length})
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: '800', color: theme.text, display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0 }}>
+                        <FaMedal style={{ color: '#D4F462' }} /> Athlete Roster ({products.length})
+                    </h3>
+                    {products.length > 0 && (
+                        <button
+                            onClick={printAllQRs}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                padding: '0.6rem 1.25rem', backgroundColor: '#D4F462', color: '#111',
+                                borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: '700',
+                                border: 'none', cursor: 'pointer', transition: 'transform 0.2s ease'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <FaPrint size={14} /> Print All QR Codes
+                        </button>
+                    )}
+                </div>
                 <div style={{ display: 'grid', gap: '1rem' }}>
                     {products.length === 0 ? (
                         <p style={{ color: theme.textMuted, fontStyle: 'italic', textAlign: 'center', padding: '2rem 0' }}>No athletes in the roster yet. Add one above!</p>
@@ -785,20 +904,43 @@ const ProductManager = ({ isDarkMode }) => {
                                             }}>
                                                 {getAthleteUrl(prod.id)}
                                             </div>
-                                            <button onClick={() => downloadQR(prod.id, prod.name)} style={{
-                                                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                                padding: '0.5rem 1rem', backgroundColor: '#8B5CF6', color: 'white',
-                                                borderRadius: '0.35rem', fontSize: '0.75rem', fontWeight: '700',
-                                                border: 'none', cursor: 'pointer',
-                                            }}>
-                                                <FaDownload size={11} /> Download PNG
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                                <button onClick={() => downloadQR(prod.id, prod.name)} style={{
+                                                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                                    padding: '0.5rem 1rem', backgroundColor: '#8B5CF6', color: 'white',
+                                                    borderRadius: '0.35rem', fontSize: '0.75rem', fontWeight: '700',
+                                                    border: 'none', cursor: 'pointer',
+                                                }}>
+                                                    <FaDownload size={11} /> PNG
+                                                </button>
+                                                <button onClick={() => printSingleQR(prod.id, prod.name)} style={{
+                                                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                                    padding: '0.5rem 1rem', backgroundColor: '#D4F462', color: '#111',
+                                                    borderRadius: '0.35rem', fontSize: '0.75rem', fontWeight: '700',
+                                                    border: 'none', cursor: 'pointer',
+                                                }}>
+                                                    <FaPrint size={11} /> Print
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
                             </div>
                         ))
                     )}
+                </div>
+
+                {/* Hidden container for bulk QR generation */}
+                <div style={{ display: 'none' }}>
+                    {products.map(prod => (
+                        <QRCodeCanvas
+                            key={`hidden-qr-${prod.id}`}
+                            id={`qr-${prod.id}`}
+                            value={getAthleteUrl(prod.id)}
+                            size={256}
+                            level="H"
+                        />
+                    ))}
                 </div>
             </div>
         </div>
